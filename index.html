@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cogollera IoT - Monitor en Vivo</title>
+  
+  <!-- Tipografía Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Estilos separados -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Cliente Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div class="container">
+    <!-- HEADER -->
+    <header>
+      <div class="logo-area">
+        <h1>Cogollera IoT</h1>
+        <p>Dashboard de Telemetría en Tiempo Real</p>
+      </div>
+      <div class="status-badge">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Esperando datos del ESP32...</span>
+      </div>
+    </header>
+
+    <!-- TARJETAS DE MÉTRICAS -->
+    <div class="grid">
+      <!-- TEMPERATURA -->
+      <div class="card">
+        <div class="card-top">
+          <span class="card-label">Temperatura Chip</span>
+          <div class="card-icon temp-icon">🌡️</div>
+        </div>
+        <div class="card-value" id="tempValue">--.- °C</div>
+        <div class="card-footer" id="tempSub">Sensor interno ESP32</div>
+      </div>
+
+      <!-- CONTADOR -->
+      <div class="card">
+        <div class="card-top">
+          <span class="card-label">Contador (Cada 10s)</span>
+          <div class="card-icon counter-icon">⏱️</div>
+        </div>
+        <div class="card-value" id="counterValue">#0</div>
+        <div class="card-footer">Ciclos transmitidos</div>
+      </div>
+
+      <!-- ÚLTIMO REPORTE -->
+      <div class="card">
+        <div class="card-top">
+          <span class="card-label">Último Reporte</span>
+          <div class="card-icon sync-icon">📡</div>
+        </div>
+        <div class="card-value" style="font-size: 26px; padding-top: 10px;" id="lastSyncTime">Sin datos</div>
+        <div class="card-footer" id="syncDiff">Esperando primer paquete</div>
+      </div>
+    </div>
+
+    <!-- TABLA DE HISTORIAL -->
+    <div class="history-card">
+      <h3>
+        <span>Historial de Mediciones Recientes</span>
+        <button class="btn btn-secondary" onclick="simularEnvio()" style="font-size: 12px; padding: 6px 12px;">
+          + Simular Envío ESP32 (Prueba)
+        </button>
+      </h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Temperatura</th>
+              <th>Contador</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+            <tr>
+              <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 25px;">
+                Aún no hay mediciones. En cuanto el ESP32 envíe datos se mostrarán aquí en vivo.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CONFIGURACIÓN SUPABASE -->
+    <div class="config-box">
+      <div class="config-title">
+        <span>🔌 Conexión con Supabase Realtime</span>
+        <span style="font-size: 12px;" id="sbStatus">Desconectado</span>
+      </div>
+      <p>Ingresa la URL y Anon Key de tu proyecto de Supabase. Quedan guardadas en tu navegador para recibir los datos por WebSockets en vivo:</p>
+      <div class="inputs-grid">
+        <input type="text" id="sbUrl" placeholder="https://tu-proyecto.supabase.co">
+        <input type="password" id="sbKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6...">
+        <button class="btn" onclick="conectarSupabase()">Conectar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lógica JavaScript separada -->
+  <script src="app.js"></script>
+</body>
+</html>
