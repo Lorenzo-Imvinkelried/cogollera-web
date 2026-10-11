@@ -70,11 +70,26 @@ setInterval(() => {
   else syncDiff.innerText = `Hace ${seg} segundo${seg > 1 ? 's' : ''}`;
 }, 1000);
 
-// Botón de prueba simulada
+// Botón de prueba simulada (Inserta directamente en Supabase si está conectado)
 let contadorPrueba = 1;
-function simularEnvio() {
-  const tempSim = 35.5 + Math.random() * 5;
-  actualizarDatos(tempSim, contadorPrueba++);
+async function simularEnvio() {
+  const tempSim = Number((35.5 + Math.random() * 5).toFixed(1));
+  const cont = contadorPrueba++;
+
+  if (supabaseClient) {
+    console.log('Insertando simulación en Supabase...', { tempSim, cont });
+    const { error } = await supabaseClient
+      .from('mediciones')
+      .insert([{ temperatura: tempSim, contador: cont }]);
+
+    if (error) {
+      console.error('Error insertando en Supabase:', error);
+      alert('Error al insertar en Supabase: ' + error.message);
+    }
+  } else {
+    // Si no está conectado a Supabase, actualiza solo en local
+    actualizarDatos(tempSim, cont);
+  }
 }
 
 // =========================================================================
@@ -122,6 +137,7 @@ function conectarSupabase(urlManual, keyManual) {
         if (!error && data && data.length > 0) {
           const ult = data[0];
           actualizarDatos(ult.temperatura, ult.contador, new Date(ult.created_at || Date.now()));
+          contadorPrueba = (Number(ult.contador) || 0) + 1;
         }
       });
 
