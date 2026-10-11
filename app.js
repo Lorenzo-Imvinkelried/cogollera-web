@@ -1,3 +1,9 @@
+// =============================================================================
+// CONFIGURACIÓN DE SUPABASE (PROYECTO COGOLLERA)
+// =============================================================================
+const DEFAULT_SUPABASE_URL = "https://pqydjwpjclfnwfrzpsvb.supabase.co";
+const DEFAULT_SUPABASE_KEY = "sb_publishable_jGjzJtPJeXKfqIwatNmRIA_oqSGTYRZ";
+
 let supabaseClient = null;
 let ultimaFecha = null;
 let historial = [];
@@ -74,12 +80,12 @@ function simularEnvio() {
 // =========================================================================
 // CONEXIÓN CON SUPABASE REALTIME
 // =========================================================================
-function conectarSupabase() {
-  const url = document.getElementById('sbUrl').value.trim();
-  const key = document.getElementById('sbKey').value.trim();
+function conectarSupabase(urlManual, keyManual) {
+  const url = urlManual || (document.getElementById('sbUrl') ? document.getElementById('sbUrl').value.trim() : '') || DEFAULT_SUPABASE_URL;
+  const key = keyManual || (document.getElementById('sbKey') ? document.getElementById('sbKey').value.trim() : '') || DEFAULT_SUPABASE_KEY;
 
   if (!url || !key) {
-    alert('Por favor ingresa la URL y la Anon Key de Supabase.');
+    console.warn('Credenciales de Supabase no disponibles.');
     return;
   }
 
@@ -89,8 +95,10 @@ function conectarSupabase() {
 
     supabaseClient = supabase.createClient(url, key);
     const sbStatus = document.getElementById('sbStatus');
-    sbStatus.innerText = '🟢 Conectado a Realtime';
-    sbStatus.style.color = '#22c55e';
+    if (sbStatus) {
+      sbStatus.innerText = '🟢 Conectado a Realtime';
+      sbStatus.style.color = '#22c55e';
+    }
 
     // Escuchar inserciones en vivo en la tabla "mediciones"
     supabaseClient
@@ -101,7 +109,7 @@ function conectarSupabase() {
         actualizarDatos(data.temperatura, data.contador, new Date(data.created_at || Date.now()));
       })
       .subscribe(status => {
-        console.log('Estado canal Supabase:', status);
+        console.log('Estado canal Supabase Realtime:', status);
       });
 
     // Cargar última medición existente al conectar
@@ -118,17 +126,25 @@ function conectarSupabase() {
       });
 
   } catch (err) {
-    alert('Error al conectar con Supabase: ' + err.message);
+    console.error('Error al conectar con Supabase:', err);
+    const sbStatus = document.getElementById('sbStatus');
+    if (sbStatus) {
+      sbStatus.innerText = '🔴 Error de conexión';
+      sbStatus.style.color = '#ef4444';
+    }
   }
 }
 
-// Si ya hay credenciales guardadas en localStorage, conectar al cargar
+// Conexión automática al cargar la página
 window.addEventListener('DOMContentLoaded', () => {
-  const savedUrl = localStorage.getItem('sb_url');
-  const savedKey = localStorage.getItem('sb_key');
-  if (savedUrl && savedKey) {
-    document.getElementById('sbUrl').value = savedUrl;
-    document.getElementById('sbKey').value = savedKey;
-    conectarSupabase();
-  }
+  const url = localStorage.getItem('sb_url') || DEFAULT_SUPABASE_URL;
+  const key = localStorage.getItem('sb_key') || DEFAULT_SUPABASE_KEY;
+
+  const urlInput = document.getElementById('sbUrl');
+  const keyInput = document.getElementById('sbKey');
+
+  if (urlInput) urlInput.value = url;
+  if (keyInput) keyInput.value = key;
+
+  conectarSupabase(url, key);
 });
